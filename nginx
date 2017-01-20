@@ -1,0 +1,104 @@
+	## our http server at port 80
+	server {
+     	add_header Strict-Transport-Security max-age=31536000; ## HSTS
+     	listen	 0.0.0.0:80 default;
+	server_name example.com www.example.com;
+	server_name_in_redirect off;
+     	## redirect http to https ##
+     	rewrite        ^ https://$server_name$request_uri? permanent;
+}
+
+	## Our https server at port 443. You need to provide ssl config here###
+	limit_req_zone $binary_remote_addr zone=one:10m rate=1r/s;
+	server {
+     	add_header X-Frame-Options SAMEORIGIN; 
+     	index       index index.html index.htm index.php;
+   	root        /var/www/html;
+    	## start ssl config ##
+    	listen      0.0.0.0:443 ssl;
+     	server_name example.com www.example.com;
+		location / {
+		limit_req      zone=one burst=10 nodelay;
+		# First attempt to serve request as file, then
+		# as directory, then fall back to displaying a 404.
+		try_files $uri $uri/  /index.php?$args;
+		# Uncomment to enable naxsi on this location
+		# include /etc/nginx/naxsi.rules
+	 }
+	## redirect nowww to www
+         if ($host = 'example.com' ) {
+         rewrite  ^/(.*)$  https://www.example.com/$1  permanent;
+         }
+	error_page 404 /404.html;
+
+	# redirect server error pages to the static page /50x.html
+	error_page 500 502 503 504 /50x.html;
+	location = /50x.html {
+		root /var/www/html;
+	 }
+
+	location /phpmyadmin {
+           root /usr/share/;
+           index index.php index.html index.htm;
+           location ~ ^/phpmyadmin/(.+\.php)$ {
+                   try_files $uri =404;
+                   root /usr/share/;
+                   fastcgi_pass unix:/var/run/php5-fpm.sock;
+                   fastcgi_index index.php;
+                   fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+                   include /etc/nginx/fastcgi_params;
+           }
+           location ~* ^/phpmyadmin/(.+\.(jpg|jpeg|gif|css|png|js|ico|html|xml|txt))$ {
+                   root /usr/share/;
+           }
+   	 }
+
+	# pass the PHP scripts to FastCGI server listening on 127.0.0.1:9000
+	   location ~ \.php$ {
+                try_files $uri =404;
+                fastcgi_split_path_info ^(.+\.php)(/.+)$;
+        #       NOTE: You should have "cgi.fix_pathinfo = 0;" in php.ini
+        #       With php5-cgi alone:
+        #       fastcgi_pass 127.0.0.1:9000;
+        #       # With php5-fpm:
+                fastcgi_pass unix:/var/run/php5-fpm.sock;
+                fastcgi_index index.php;
+		include 	/etc/nginx/fastcgi_params;
+                include fastcgi_params;
+				fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+				fastcgi_param PATH_INFO $fastcgi_path_info;
+				fastcgi_param HTTPS on;
+	}
+	
+	# set max upload size
+	client_max_body_size 10G;
+ 	fastcgi_buffers 64 4K;
+
+    ### ssl config - customize as per your setup ###
+    	 ssl_certificate /etc/ssl/certs/ssl.pem;
+    	 ssl_certificate_key /etc/ssl/private/ssl.key;
+     	 ssl_protocols   TLSv1 TLSv1.1 TLSv1.2;
+         ssl_ciphers :!DH:ECDH+AESGCM:DH+AESGCM:ECDH+AES256:DH+AES256:ECDH+AES128:DH+AES:ECDH+3DES:DH+3DES:RSA+AESGCM:RSA+AES:RSA+3DES:!aNULL:!MD5:!DSS;	
+        #ssl_ciphers "HIGH:!aNULL:!MD5 or HIGH:!aNULL:!MD5:!3DES";
+    	 ssl_prefer_server_ciphers on;
+  	 add_header Strict-Transport-Security "max-age=31536000; includeSubdomains; preload";
+         ssl_stapling on;
+         ssl_stapling_verify on;
+         ssl_trusted_certificate /etc/ssl/private/ca-certs.pem; 
+         keepalive_timeout    70;
+  	 ssl_dhparam /etc/ssl/certs/dhparam.pem;
+	 ssl_session_cache    shared:SSL:10m;
+   	 ssl_session_timeout  10m;
+	 add_header Public-Key-Pins "pin-sha256='bjfAYCcSNHsOyIcQAB3ZsgdRKsX0XZfVqNt1aydIY7k='; \
+	 pin-sha256='3Efnl6FGmjFCm64jFew1uphM7YeYMJdozJgIKept3p8='; \
+	 max-age=10";
+	   # Optional: set long EXPIRES header on static assets
+		location ~* \.(?:jpg|jpeg|gif|bmp|ico|png|css|js|swf)$ {
+		expires 30d;
+      	   # Optional: Don't log access to assets
+        	access_log off;
+  	 }
+
+	rewrite ^/sitemap_index\.xml$ /index.php?sitemap=1 last;
+	rewrite ^/([^/]+?)-sitemap([0-9]+)?\.xml$ /index.php?sitemap=$1&sitemap_n=$2 last;
+}
