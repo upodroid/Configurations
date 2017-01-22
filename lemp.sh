@@ -3,8 +3,9 @@
 echo This script will install the LEMP Stack
 sudo apt-get install nginx -y
 # wget config then cp the file
-
-cp default /etc/nginx/sites-available/default
+wget https://raw.githubusercontent.com/upodroid/Configurations/master/nginx
+mv nginx default
+cp default /etc/nginx/sites-available
 sudo openssl dhparam -out /etc/nginx/ssl/dhparam.pem 2048
 sudo nginx -t
 sudo apt install php7.0 php7.0-fpm -y
