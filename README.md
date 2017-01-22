@@ -1,10 +1,11 @@
 TBU: To be updated
 
 To install LEMP Stack:
-
+```bash
 wget https://raw.githubusercontent.com/upodroid/Configurations/master/lemp.sh
 chmod +x lemp.sh
 ./lemp.sh
+```
 
 Few things, make sure the certificate is already generated before running the script. 
 Make sure the pem file is in /etc/nginx/ssl and called nginx.pem and make sure the private key is in the same directory and called nginx.key
