@@ -12,12 +12,13 @@ Make sure the pem file is in /etc/nginx/ssl and called nginx.pem and make sure t
 Also open the nginx config file at /etc/nginx/sites-available/default and match it to waht you need.
 
 The script doesn't initialise MariaDB fully so you need to run the following commands, they should allow you to use mysql qithout sudo:
-
+```
 sudo mysql 
 MariaDB> use mysql;
 MariaDB> update user set plugin=’‘ where User=’root’;
 MariaDB> flush privileges;
 MariaDB> exit
+```
 
 Have fun :D 
 
