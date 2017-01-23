@@ -18,7 +18,10 @@ sudo apt install mariadb-server mariadb-client php7.0-mysql -y
 sudo systemctl restart php7.0-fpm.service
 sudo mysql_secure_installation
 sudo openssl dhparam -out /etc/nginx/ssl/dhparam.pem 2048
+wget
+cp php.ini /etc/php/7.0/fpm
 
 chown www-data:www-data  -R * # Let Apache be owner
 find . -type d -exec chmod 755 {} \;  # Change directory permissions rwxr-xr-x
 find . -type f -exec chmod 644 {} \;  # Change file permissions rw-r--r--
+
