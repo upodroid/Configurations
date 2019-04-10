@@ -12,6 +12,7 @@ Change the vars.sh to fit your needs.
 It is assumed that you are using a GKE cluster and Route53 for DNS.
 
 `sed -i 's/\*.borg.dev/\*.yourdomain.com/g' cert.yaml`
+
 `sed -i 's/\*.borg.dev/\*.yourdomain.com/g' issuer.yaml`
 
 
